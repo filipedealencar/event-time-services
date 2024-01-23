@@ -1,13 +1,10 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { promisify } from "util";
 import { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const { verify } = jwt;
-
-export async function eAdmin(
+export async function authenticateToken(
   req: Request,
   res: Response,
   next: NextFunction
@@ -26,32 +23,22 @@ export async function eAdmin(
 
   if (!token) {
     return res.status(401).json({
-      error: true,
+      valid: false,
       message: "Access denied. Token not provided",
     });
   }
 
   try {
-    const decode = await promisify<string, string, any>(verify)(
-      token,
-      process.env.SECRET_KEY as string
-    );
-
-    // if (!decode.permissions?.includes("admin")) {
-    //   return res.status(403).json({
-    //     error: true,
-    //     message: "Error: You don't have permission to access this route!",
-    //   });
-    // }
-
-    console.log(req.body, decode);
-
-    req.body.userId = decode.id;
+    jwt.verify(token, process.env.SECRET_KEY as string, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ valid: false, message: "Invalid token" });
+      }
+    });
 
     return next();
   } catch (err) {
     return res.status(403).json({
-      error: true,
+      valid: false,
       message: menssageErroToken,
     });
   }
