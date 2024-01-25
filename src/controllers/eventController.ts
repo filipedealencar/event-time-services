@@ -5,23 +5,37 @@ export class EventControllers {
   getAllEvents = async (req: Request, res: Response): Promise<void> => {
     try {
       const events = await Event.find({ userId: req.body.userId });
-      console.log(req);
       res.json(events);
     } catch (error: any) {
-      console.log(req);
       res.status(500).json({ message: error.message });
     }
   };
 
   createEvent = async (req: Request, res: Response): Promise<void> => {
-    const event = new Event({
-      description: req.body.description,
-      startTime: req.body.startTime,
-      endTime: req.body.endTime,
-      userId: req.body.userId,
-    });
-
     try {
+      const { title, description, startTime, endTime, userId } = req.body;
+
+      const existingEvent = await Event.findOne({
+        title,
+        description,
+        startTime,
+        endTime,
+        userId,
+      });
+
+      if (existingEvent) {
+        res.status(409).json({ message: "Event already exists" });
+        return;
+      }
+
+      const event = new Event({
+        title,
+        description,
+        startTime,
+        endTime,
+        userId,
+      });
+
       const newEvent = await event.save();
       res.status(201).json(newEvent);
     } catch (error: any) {
@@ -36,6 +50,7 @@ export class EventControllers {
       const updatedEvent = await Event.findByIdAndUpdate(
         eventId,
         {
+          title: req.body.title,
           description: req.body.description,
           startTime: req.body.startTime,
           endTime: req.body.endTime,
@@ -58,7 +73,7 @@ export class EventControllers {
     const eventId = req.params.id;
 
     try {
-      const deletedEvent = await Event.findByIdAndDelete(eventId);
+      const deletedEvent = await Event.findByIdAndDelete({ _id: eventId });
 
       if (!deletedEvent) {
         res.status(404).json({ message: "Event not found" });

@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE");
   app.use(cors());
   next();
 });
@@ -24,8 +24,8 @@ app.get("/verify-token", authenticateToken, async (req, res) => {
 
 app.get("/", eAdmin, new EventControllers().getAllEvents);
 app.post("/", eAdmin, new EventControllers().createEvent);
-app.put("/", eAdmin, new EventControllers().updateEvent);
-app.delete("/", eAdmin, new EventControllers().deleteEvent);
+app.put("/:id", eAdmin, new EventControllers().updateEvent);
+app.delete("/:id", eAdmin, new EventControllers().deleteEvent);
 
 app.post("/login", new UserControllers().userLogin);
 app.post("/register", new UserControllers().createUser);

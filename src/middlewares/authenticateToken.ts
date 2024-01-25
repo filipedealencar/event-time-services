@@ -1,6 +1,8 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { verify } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
+import { promisify } from "util";
+import { User } from "../models/usersModel";
 
 dotenv.config();
 
@@ -29,12 +31,18 @@ export async function authenticateToken(
   }
 
   try {
-    jwt.verify(token, process.env.SECRET_KEY as string, (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ valid: false, message: "Invalid token" });
-      }
+    await new Promise<void>((resolve, reject) => {
+      jwt.verify(
+        token,
+        process.env.SECRET_KEY as string,
+        (err: jwt.VerifyErrors | null) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve();
+        }
+      );
     });
-
     return next();
   } catch (err) {
     return res.status(403).json({

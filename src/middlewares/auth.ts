@@ -44,8 +44,6 @@ export async function eAdmin(
     //   });
     // }
 
-    console.log(req.body, decode);
-
     req.body.userId = decode.id;
 
     return next();
